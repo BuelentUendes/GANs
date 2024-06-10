@@ -1,25 +1,13 @@
-# This is a sample Python script.
-
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-import os
-from os.path import abspath
+import argparse
 import torch
 import torch.nn as nn
-import torchvision
-import torchvision.datasets as datasets
-from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
 from utils.helper_path import MNIST_PATH
 from utils.helper_functions import create_directory, get_MNIST_dataset
 from torch.utils.data import DataLoader
 from src.vanilla_GAN import create_noise, Generator, Discriminator
 import numpy as np
 
-BATCH_SIZE = 32
-LATENT_SPACE_DIM = 20
 IMG_DIM = 28
-EPOCHS = 15
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 LR = 3e-4
 loss_fn = nn.BCELoss()
@@ -30,11 +18,11 @@ def get_optimizers(discriminator, generator, lr=LR):
     return d_optimizer, g_optimizer
 
 
-def train_discriminator(x, discriminator, generator, d_optimizer, device=DEVICE):
+def train_discriminator(x, discriminator, generator, d_optimizer, latent_space_dim, device=DEVICE):
     discriminator.zero_grad()
     batch_size = x.size(0)
     # Sample noise
-    noise = create_noise(batch_size, LATENT_SPACE_DIM).to(device)
+    noise = create_noise(batch_size, latent_space_dim).to(device)
     samples_fake = generator.forward(noise).to(DEVICE)
 
     d_labels_real = torch.ones(batch_size, 1, device=device)
@@ -52,10 +40,10 @@ def train_discriminator(x, discriminator, generator, d_optimizer, device=DEVICE)
     return total_loss_d.cpu().item(), d_proba_real, d_proba_fake
 
 
-def train_generator(x, generator, discriminator, g_optimizer, device=DEVICE):
+def train_generator(x, generator, discriminator, g_optimizer, latent_space_dim, device=DEVICE):
     generator.zero_grad()
     batch_size = x.size(0)
-    noise = create_noise(batch_size, LATENT_SPACE_DIM).to(device)
+    noise = create_noise(batch_size, latent_space_dim).to(device)
     samples_fake = generator(noise)
     g_labels_real = torch.ones(batch_size, 1, device=device)
 
@@ -77,22 +65,33 @@ def create_samples(generator, noise):
 
 
 if __name__ == "__main__":
-    torch.manual_seed(1)
-    np.random.seed(1)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--epochs',
+                        help='Override default config setting for iterations we want to train the algorithm with',
+                        default=50, type=int)
+    parser.add_argument('--batch_size', help="Override default config batch size to train the algorithm with",
+                        default=64, type=int)
+    parser.add_argument("--latent_space_dim", help="latent space dimension for noise", default=20, type=int)
+    parser.add_argument('--seed', help='seed number', default=7, type=int)
+    args = parser.parse_args()
+
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
 
     create_directory(MNIST_PATH)
     mnist_dataset = get_MNIST_dataset(MNIST_PATH, download=True)
 
     # Makes it easier to go in batches to work with dataloader
-    mnist_dataloader = DataLoader(mnist_dataset, BATCH_SIZE, shuffle=False)
+    mnist_dataloader = DataLoader(mnist_dataset, args.batch_size, shuffle=False)
 
-    generator = Generator(LATENT_SPACE_DIM, IMG_DIM).to(DEVICE)
+    generator = Generator(args.latent_space_dim, IMG_DIM).to(DEVICE)
     discriminator = Discriminator(IMG_DIM).to(DEVICE)
     d_optimizer, g_optimizer = get_optimizers(discriminator, generator)
 
     # Sample fix noise, so I can see how the images evolve over time for a fixed noise sample
     # , here we take only 5 images that is enough
-    fixed_noise = create_noise(5, LATENT_SPACE_DIM).to(DEVICE)
+    fixed_noise = create_noise(5, args.latent_space_dim).to(DEVICE)
 
     all_epoch_samples = []
     all_epoch_proba_real = []
@@ -100,15 +99,17 @@ if __name__ == "__main__":
     all_epoch_generator_loss = []
     epoch_discriminator_loss = []
 
-    for epoch in range(1, EPOCHS+1):
-        print(f"Train {epoch}/{EPOCHS}")
+    for epoch in range(1, args.epochs+1):
+        print(f"Train GAN model: {epoch}/{args.epochs}")
         discriminator_loss, generator_loss = [], []
         probability_real, probability_fake = [], []
 
         for i, (x, _) in enumerate(mnist_dataloader):
             total_loss_d, d_proba_real, d_proba_fake = \
-                train_discriminator(x, discriminator, generator, d_optimizer, device=DEVICE)
-            total_loss_g = train_generator(x, generator, discriminator, g_optimizer, device=DEVICE)
+                train_discriminator(x, discriminator, generator, d_optimizer, args.latent_space_dim,
+                                    device=DEVICE)
+            total_loss_g = train_generator(x, generator, discriminator, g_optimizer, args.latent_space_dim,
+                                           device=DEVICE)
 
             discriminator_loss.append(total_loss_d)
             generator_loss.append(total_loss_g)

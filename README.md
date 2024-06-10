@@ -1,7 +1,7 @@
 # GAN playground
 
 In this repo, I implement a simple Generative Adversarial Net (GAN) as introduced by 
-[Goodfellow et al. (2014)](https://arxiv.org/abs/1406.2661).
+[Goodfellow et al. (2014)](https://arxiv.org/abs/1406.2661). The GAN is trained on the MNIST dataset for simplicity.
 
 ___
 **Installation:**

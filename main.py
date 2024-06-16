@@ -58,7 +58,7 @@ def train_generator(x, generator, discriminator, g_optimizer, latent_space_dim, 
 
 
 def create_samples(generator, noise):
-    generated_sample = generator(noise).detach()
+    generated_sample = generator(noise).detach().cpu()
     # We need to reshape the data in the HWC as numpy expects it and denormalize it in the range 0, 1
     images = generated_sample.permute(1, 2, 0)
 

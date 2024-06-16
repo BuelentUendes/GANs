@@ -2,10 +2,11 @@ import argparse
 import torch
 import torch.nn as nn
 from utils.helper_path import MNIST_PATH
-from utils.helper_functions import create_directory, get_MNIST_dataset
+from utils.helper_functions import create_directory, get_MNIST_dataset, log_generated_samples
 from torch.utils.data import DataLoader
 from src.vanilla_GAN import create_noise, Generator, Discriminator
 import numpy as np
+import wandb
 
 IMG_DIM = 28
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -57,11 +58,11 @@ def train_generator(x, generator, discriminator, g_optimizer, latent_space_dim, 
 
 
 def create_samples(generator, noise):
-    generated_sample = generator(noise)
+    generated_sample = generator(noise).detach()
     # We need to reshape the data in the HWC as numpy expects it and denormalize it in the range 0, 1
     images = generated_sample.permute(1, 2, 0)
 
-    return (images+1) / 2
+    return (images + 1) / 2
 
 
 if __name__ == "__main__":
@@ -73,7 +74,9 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', help="Override default config batch size to train the algorithm with",
                         default=64, type=int)
     parser.add_argument("--latent_space_dim", help="latent space dimension for noise", default=20, type=int)
-    parser.add_argument('--seed', help='seed number', default=7, type=int)
+    parser.add_argument("--seed", help='seed number', default=7, type=int)
+    parser.add_argument("--wandb_logging", help='Boolean, if TRUE then wandb logging will be enabled',
+                        action='store_true')
     args = parser.parse_args()
 
     torch.manual_seed(args.seed)
@@ -91,13 +94,21 @@ if __name__ == "__main__":
 
     # Sample fix noise, so I can see how the images evolve over time for a fixed noise sample
     # , here we take only 5 images that is enough
-    fixed_noise = create_noise(5, args.latent_space_dim).to(DEVICE)
+    fixed_noise = create_noise(20, args.latent_space_dim).to(DEVICE)
 
-    all_epoch_samples = []
     all_epoch_proba_real = []
     all_epoch_proba_fake = []
     all_epoch_generator_loss = []
     epoch_discriminator_loss = []
+
+    if args.wandb_logging:
+        wandb.init(
+            project='GAN_plaground',
+            entity='b-uendes',
+            name='GAN_playground_' + wandb.util.generate_id(),
+            reinit=True,
+            notes='Visualization of GAN runs'
+        )
 
     for epoch in range(1, args.epochs+1):
         print(f"Train GAN model: {epoch}/{args.epochs}")
@@ -124,12 +135,18 @@ if __name__ == "__main__":
         print(f"\nloss_generator: {epoch_loss_generator} \nloss discriminator: {epoch_loss_discriminator}"
               f"\nprobability_fake: {epoch_probability_fake} \nprobability_real: {epoch_probability_real}")
 
-        all_epoch_samples.append(create_samples(generator, fixed_noise))
+        fake_samples = create_samples(generator, fixed_noise)
         all_epoch_proba_real.append(epoch_probability_real)
         all_epoch_proba_fake.append(epoch_probability_fake)
         all_epoch_generator_loss.append(epoch_loss_generator)
         epoch_discriminator_loss.append(epoch_loss_discriminator)
 
+        # Plot if wandb object is provided:
+        if args.wandb_logging:
+            log_generated_samples(fake_samples, epoch=epoch, wandb_object=wandb)
+
+    if args.wandb_logging:
+        wandb.finish()
 
 
 

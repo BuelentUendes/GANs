@@ -1,0 +1,1 @@
+{"GAN: generated_samples epoch": {"_type": "image-file", "sha256": "1ee79b2c88786c2e563eaf2ec1e75bad45e52bc002d41888457bb71061837a37", "size": 63242, "path": "media/images/GAN: generated_samples epoch_2_1ee79b2c88786c2e563e.png", "format": "png", "width": 1000, "height": 1000}, "_timestamp": 1718567254.869811, "_runtime": 79.86382603645325, "_step": 3, "_wandb": {"runtime": 82}}

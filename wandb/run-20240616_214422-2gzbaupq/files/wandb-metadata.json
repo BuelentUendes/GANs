@@ -1,0 +1,49 @@
+{
+    "os": "macOS-14.4.1-x86_64-i386-64bit",
+    "python": "3.9.6",
+    "heartbeatAt": "2024-06-16T19:44:22.875553",
+    "startedAt": "2024-06-16T19:44:22.301217",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--epochs",
+        "3",
+        "--wandb_logging"
+    ],
+    "state": "running",
+    "program": "/Users/test/PycharmProjects/GAN/main.py",
+    "codePathLocal": "main.py",
+    "codePath": "main.py",
+    "git": {
+        "remote": "https://github.com/BuelentUendes/GANs.git",
+        "commit": "ff7fb749162c16ee5eafb22e3194287d20f5e20e"
+    },
+    "email": "buelent.tt@web.de",
+    "root": "/Users/test/PycharmProjects/GAN",
+    "host": "Buelents-MBP.home",
+    "username": "test",
+    "executable": "/Users/test/PycharmProjects/GAN/venv/bin/python3",
+    "cpu_count": 10,
+    "cpu_count_logical": 10,
+    "cpu_freq": {
+        "current": 2400,
+        "min": 2400,
+        "max": 2400
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2400,
+            "min": 2400,
+            "max": 2400
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 926.3517189025879,
+            "used": 12.543060302734375
+        }
+    },
+    "memory": {
+        "total": 32.0
+    }
+}

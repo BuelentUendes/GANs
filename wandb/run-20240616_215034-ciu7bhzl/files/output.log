@@ -1,0 +1,26 @@
+
+Train GAN model: 1/5
+loss_generator: 5.163694381713867
+loss discriminator: 0.4952681064605713
+probability_fake: 0.1819285750389099
+probability_real: 0.8766268491744995
+Train GAN model: 2/5
+loss_generator: 3.258166790008545
+loss discriminator: 0.8814589381217957
+probability_fake: 0.25047576427459717
+probability_real: 0.7736512422561646
+Train GAN model: 3/5
+loss_generator: 1.858737826347351
+loss discriminator: 1.2574405670166016
+probability_fake: 0.3649287819862366
+probability_real: 0.6722966432571411
+Train GAN model: 4/5
+loss_generator: 2.287109851837158
+loss discriminator: 0.6789538860321045
+probability_fake: 0.23321330547332764
+probability_real: 0.7883869409561157
+Train GAN model: 5/5
+loss_generator: 3.173917770385742
+loss discriminator: 0.6049926280975342
+probability_fake: 0.18021753430366516
+probability_real: 0.8384667634963989

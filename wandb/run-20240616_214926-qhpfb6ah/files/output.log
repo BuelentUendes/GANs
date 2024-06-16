@@ -1,0 +1,6 @@
+
+Train GAN model: 1/5
+loss_generator: 5.163694381713867
+loss discriminator: 0.4952681064605713
+probability_fake: 0.1819285750389099
+probability_real: 0.8766268491744995

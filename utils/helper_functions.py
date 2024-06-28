@@ -10,7 +10,7 @@ def create_directory(path):
     os.makedirs(path, exist_ok=True)
 
 
-def get_MNIST_dataset(save_path, download=False):
+def get_MNIST_dataset(save_path, download=False, train=True):
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=(0.5), std=(0.5)),
@@ -18,10 +18,11 @@ def get_MNIST_dataset(save_path, download=False):
 
     return torchvision.datasets.MNIST(
         root=save_path,
-        train=True,
+        train=train,
         transform=transform,
         download=download,
     )
+
 
 def log_generated_samples(fake_samples, epoch, wandb_object):
     "Generates a 5 x 4 plot of the fake samples"

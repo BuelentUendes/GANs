@@ -1,0 +1,6 @@
+wandb_version: 1
+
+latent_space_dim:
+  value: 10
+lr:
+  value: 0.07684171080981282

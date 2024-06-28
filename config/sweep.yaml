@@ -1,0 +1,14 @@
+# sweep.yaml file for W&B sweep
+method: random
+name: sweep for vanilla GAN
+metric:
+  goal: minimize
+  name: val_loss_discriminator
+parameters:
+  latent_space_dim:
+    values: [5,15,20]
+  lr:
+    value: 0.0003
+
+
+

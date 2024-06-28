@@ -1,4 +1,5 @@
 import argparse
+import yaml
 import torch
 import torch.nn as nn
 from utils.helper_path import MNIST_PATH
@@ -10,16 +11,16 @@ import wandb
 
 IMG_DIM = 28
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-LR = 3e-4
-loss_fn = nn.BCELoss()
 
-def get_optimizers(discriminator, generator, lr=LR):
-    d_optimizer = torch.optim.Adam(discriminator.parameters(), lr=lr)
-    g_optimizer = torch.optim.Adam(generator.parameters(), lr=lr)
+
+def get_optimizers(discriminator, generator, lr):
+    d_optimizer = torch.optim.Adam(discriminator.parameters(), lr)
+    g_optimizer = torch.optim.Adam(generator.parameters(), lr)
     return d_optimizer, g_optimizer
 
 
 def train_discriminator(x, discriminator, generator, d_optimizer, latent_space_dim, device=DEVICE):
+    loss_fn = nn.BCELoss()
     discriminator.zero_grad()
     batch_size = x.size(0)
     # Sample noise
@@ -42,6 +43,7 @@ def train_discriminator(x, discriminator, generator, d_optimizer, latent_space_d
 
 
 def train_generator(x, generator, discriminator, g_optimizer, latent_space_dim, device=DEVICE):
+    loss_fn = nn.BCELoss()
     generator.zero_grad()
     batch_size = x.size(0)
     noise = create_noise(batch_size, latent_space_dim).to(device)
@@ -65,41 +67,7 @@ def create_samples(generator, noise):
     return (images + 1) / 2
 
 
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--epochs',
-                        help='Override default config setting for iterations we want to train the algorithm with',
-                        default=50, type=int)
-    parser.add_argument('--batch_size', help="Override default config batch size to train the algorithm with",
-                        default=64, type=int)
-    parser.add_argument("--latent_space_dim", help="latent space dimension for noise", default=20, type=int)
-    parser.add_argument("--seed", help='seed number', default=7, type=int)
-    parser.add_argument("--wandb_logging", help='Boolean, if TRUE then wandb logging will be enabled',
-                        action='store_true')
-    args = parser.parse_args()
-
-    torch.manual_seed(args.seed)
-    np.random.seed(args.seed)
-
-    create_directory(MNIST_PATH)
-    mnist_dataset = get_MNIST_dataset(MNIST_PATH, download=True)
-
-    # Makes it easier to go in batches to work with dataloader
-    mnist_dataloader = DataLoader(mnist_dataset, args.batch_size, shuffle=False)
-
-    generator = Generator(args.latent_space_dim, IMG_DIM).to(DEVICE)
-    discriminator = Discriminator(IMG_DIM).to(DEVICE)
-    d_optimizer, g_optimizer = get_optimizers(discriminator, generator)
-
-    # Sample fix noise, so I can see how the images evolve over time for a fixed noise sample
-    # , here we take only 5 images that is enough
-    fixed_noise = create_noise(20, args.latent_space_dim).to(DEVICE)
-
-    all_epoch_proba_real = []
-    all_epoch_proba_fake = []
-    all_epoch_generator_loss = []
-    epoch_discriminator_loss = []
+def main(args):
 
     if args.wandb_logging:
         wandb.init(
@@ -110,8 +78,28 @@ if __name__ == "__main__":
             notes='Visualization of GAN runs'
         )
 
-    for epoch in range(1, args.epochs+1):
-        print(f"Train GAN model: {epoch}/{args.epochs}")
+    create_directory(MNIST_PATH)
+    mnist_dataset = get_MNIST_dataset(MNIST_PATH, download=True)
+
+    # Makes it easier to go in batches to work with dataloader
+    mnist_dataloader = DataLoader(mnist_dataset, args.batch_size, shuffle=True)
+    # We will need a validation set in case we sweep
+
+    generator = Generator(args.latent_space_dim, IMG_DIM).to(DEVICE)
+    discriminator = Discriminator(IMG_DIM).to(DEVICE)
+    d_optimizer, g_optimizer = get_optimizers(discriminator, generator, lr=args.lr)
+
+    # Sample fix noise, so I can see how the images evolve over time for a fixed noise sample
+    fixed_noise = create_noise(args.visualized_img, args.latent_space_dim).to(DEVICE)
+
+    all_epoch_proba_real = []
+    all_epoch_proba_fake = []
+    all_epoch_generator_loss = []
+    epoch_discriminator_loss = []
+
+    for epoch in range(1, args.epochs + 1):
+        if args.verbose:
+            print(f"Train GAN model: {epoch}/{args.epochs}")
         discriminator_loss, generator_loss = [], []
         probability_real, probability_fake = [], []
 
@@ -132,10 +120,10 @@ if __name__ == "__main__":
         epoch_probability_fake = torch.tensor(probability_fake).mean()
         epoch_probability_real = torch.tensor(probability_real).mean()
 
-        print(f"\nloss_generator: {epoch_loss_generator} \nloss discriminator: {epoch_loss_discriminator}"
-              f"\nprobability_fake: {epoch_probability_fake} \nprobability_real: {epoch_probability_real}")
+        if args.verbose:
+            print(f"\nloss_generator: {epoch_loss_generator} \nloss discriminator: {epoch_loss_discriminator}"
+                  f"\nprobability_fake: {epoch_probability_fake} \nprobability_real: {epoch_probability_real}")
 
-        fake_samples = create_samples(generator, fixed_noise)
         all_epoch_proba_real.append(epoch_probability_real)
         all_epoch_proba_fake.append(epoch_probability_fake)
         all_epoch_generator_loss.append(epoch_loss_generator)
@@ -143,10 +131,85 @@ if __name__ == "__main__":
 
         # Plot if wandb object is provided:
         if args.wandb_logging:
+            fake_samples = create_samples(generator, fixed_noise)
             log_generated_samples(fake_samples, epoch=epoch, wandb_object=wandb)
+            wandb.log(
+                {
+                    "loss_generator": epoch_loss_generator,
+                    "loss_discriminator": epoch_loss_discriminator,
+                    "probability_fake": epoch_probability_fake,
+                    "probability_real": epoch_probability_real,
+                }
+            )
+
+    if args.sweep:
+        loss_fn = nn.BCELoss()
+        fixed_noise_val = create_noise(100, args.latent_space_dim).to(DEVICE)
+        samples_fake_val = generator(fixed_noise_val)
+        g_labels_real = torch.ones(100, 1, device=DEVICE)
+
+        d_proba_fake = discriminator(samples_fake_val)
+
+        g_loss_val = loss_fn(d_proba_fake, g_labels_real)
+        wandb.log(
+            {
+                "val_loss_discriminator": g_loss_val
+            }
+        )
 
     if args.wandb_logging:
         wandb.finish()
+
+
+def sweep_main():
+    wandb.init()
+    args = argparse.Namespace(
+        epochs=2,
+        batch_size=64,
+        latent_space_dim=wandb.config.latent_space_dim,
+        lr=wandb.config.lr,
+        seed=7,
+        wandb_logging=False,
+        visualized_img=20,
+        sweep=True,
+        verbose=True
+    )
+    main(args)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--epochs',
+                        help='Override default config setting for iterations we want to train the algorithm with',
+                        default=1, type=int)
+    parser.add_argument('--batch_size', help="Override default config batch size to train the algorithm with",
+                        default=64, type=int)
+    parser.add_argument("--latent_space_dim", help="latent space dimension for noise", default=20, type=int)
+    parser.add_argument("--lr", help="learning rate", default=3e-4, type=float)
+    parser.add_argument("--seed", help='seed number', default=7, type=int)
+    parser.add_argument("--wandb_logging", help='Boolean, if TRUE then wandb logging will be enabled',
+                        action='store_true')
+    parser.add_argument("--visualized_img", help="Number of visualized images", type=int, default=20)
+    parser.add_argument("--sweep", help="Boolean, indicating if hyperparameter sweep via W&B is used",
+                        action="store_true")
+    parser.add_argument("--number_sweeps", type=int, help="Number of sweeps to do", default=3)
+    parser.add_argument("--verbose", action="store_true")
+    args = parser.parse_args()
+
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
+
+    if args.sweep:
+        # Set up your default hyperparameters
+        with open("./config/sweep.yaml") as file:
+            sweep_config = yaml.load(file, Loader=yaml.FullLoader)
+
+        sweep_id = wandb.sweep(sweep=sweep_config)
+        wandb.agent(sweep_id, function=sweep_main, count=args.number_sweeps)
+
+    else:
+        main(args)
+
 
 
 

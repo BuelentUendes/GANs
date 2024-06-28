@@ -1,0 +1,106 @@
+2024-06-28 15:53:22 INFO Running runs: []
+2024-06-28 15:53:23 INFO Agent received command: run
+2024-06-28 15:53:23 INFO Agent starting run with config:
+	latent_space_dim: 5
+	lr: 0.04716292278102452
+2024-06-28 15:53:23 INFO About to run command: /usr/bin/env python main.py --latent_space_dim=5 --lr=0.04716292278102452
+2024-06-28 15:53:28 INFO Running runs: ['4cc1ob1f']
+2024-06-28 15:53:28 INFO Cleaning up finished run: 4cc1ob1f
+2024-06-28 15:53:28 INFO Agent received command: run
+2024-06-28 15:53:28 INFO Agent starting run with config:
+	latent_space_dim: 20
+	lr: 0.0577715607380645
+2024-06-28 15:53:28 INFO About to run command: /usr/bin/env python main.py --latent_space_dim=20 --lr=0.0577715607380645
+2024-06-28 15:53:33 INFO Running runs: ['2evgv8ka']
+2024-06-28 15:53:33 INFO Cleaning up finished run: 2evgv8ka
+2024-06-28 15:53:33 INFO Agent received command: run
+2024-06-28 15:53:33 INFO Agent starting run with config:
+	latent_space_dim: 10
+	lr: 0.02890539392571048
+2024-06-28 15:53:33 INFO About to run command: /usr/bin/env python main.py --latent_space_dim=10 --lr=0.02890539392571048
+2024-06-28 15:53:38 INFO Running runs: ['x0dlvnva']
+2024-06-28 15:53:38 ERROR Detected 3 failed runs in the first 60 seconds, shutting down.
+2024-06-28 15:53:38 INFO To disable this check set WANDB_AGENT_DISABLE_FLAPPING=true
+2024-06-28 15:54:59 ERROR Traceback (most recent call last):
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/apis/normalize.py", line 41, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/sdk/internal/internal_api.py", line 1036, in sweep
+    raise ValueError(f"Sweep {entity}/{project}/{sweep} not found")
+ValueError: Sweep b-uendes/GAN/4gta5cwv not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/cli/cli.py", line 108, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/cli/cli.py", line 1806, in agent
+    wandb_agent.agent(sweep_id, entity=entity, project=project, count=count)
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/wandb_agent.py", line 570, in agent
+    return run_agent(
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/wandb_agent.py", line 528, in run_agent
+    agent.run()
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/wandb_agent.py", line 190, in run
+    sweep_obj = self._api.sweep(self._sweep_id, "{}")
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/apis/internal.py", line 126, in sweep
+    return self.api.sweep(*args, **kwargs)
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/apis/normalize.py", line 87, in wrapper
+    raise CommError(message, err).with_traceback(sys.exc_info()[2])
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/apis/normalize.py", line 41, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/sdk/internal/internal_api.py", line 1036, in sweep
+    raise ValueError(f"Sweep {entity}/{project}/{sweep} not found")
+wandb.errors.CommError: Sweep b-uendes/GAN/4gta5cwv not found
+
+2024-06-28 15:55:39 ERROR Traceback (most recent call last):
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/apis/normalize.py", line 41, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/sdk/internal/internal_api.py", line 1036, in sweep
+    raise ValueError(f"Sweep {entity}/{project}/{sweep} not found")
+ValueError: Sweep b-uendes/GAN/h0o8h2ed not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/cli/cli.py", line 108, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/cli/cli.py", line 1806, in agent
+    wandb_agent.agent(sweep_id, entity=entity, project=project, count=count)
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/wandb_agent.py", line 570, in agent
+    return run_agent(
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/wandb_agent.py", line 528, in run_agent
+    agent.run()
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/wandb_agent.py", line 190, in run
+    sweep_obj = self._api.sweep(self._sweep_id, "{}")
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/apis/internal.py", line 126, in sweep
+    return self.api.sweep(*args, **kwargs)
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/apis/normalize.py", line 87, in wrapper
+    raise CommError(message, err).with_traceback(sys.exc_info()[2])
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/apis/normalize.py", line 41, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/test/PycharmProjects/GAN/venv/lib/python3.9/site-packages/wandb/sdk/internal/internal_api.py", line 1036, in sweep
+    raise ValueError(f"Sweep {entity}/{project}/{sweep} not found")
+wandb.errors.CommError: Sweep b-uendes/GAN/h0o8h2ed not found
+
+2024-06-28 15:56:35 INFO Running runs: []
+2024-06-28 15:56:36 INFO Agent received command: run
+2024-06-28 15:56:36 INFO Agent starting run with config:
+	latent_space_dim: 5
+	lr: 0.03591714558519328
+2024-06-28 15:56:36 INFO About to run command: /usr/bin/env python main.py --latent_space_dim=5 --lr=0.03591714558519328
+2024-06-28 15:56:41 INFO Running runs: ['d7o2zxlz']
+2024-06-28 15:56:41 INFO Cleaning up finished run: d7o2zxlz
+2024-06-28 15:56:41 INFO Agent received command: run
+2024-06-28 15:56:41 INFO Agent starting run with config:
+	latent_space_dim: 5
+	lr: 0.011106532281594876
+2024-06-28 15:56:41 INFO About to run command: /usr/bin/env python main.py --latent_space_dim=5 --lr=0.011106532281594876
+2024-06-28 15:56:46 INFO Running runs: ['xwdlto9r']
+2024-06-28 15:56:46 INFO Cleaning up finished run: xwdlto9r
+2024-06-28 15:56:46 INFO Agent received command: run
+2024-06-28 15:56:46 INFO Agent starting run with config:
+	latent_space_dim: 10
+	lr: 0.07684171080981282
+2024-06-28 15:56:46 INFO About to run command: /usr/bin/env python main.py --latent_space_dim=10 --lr=0.07684171080981282
+2024-06-28 15:56:51 INFO Running runs: ['psm2zp7d']
+2024-06-28 15:56:51 ERROR Detected 3 failed runs in the first 60 seconds, shutting down.
+2024-06-28 15:56:51 INFO To disable this check set WANDB_AGENT_DISABLE_FLAPPING=true

@@ -3,6 +3,20 @@ import torch.nn as nn
 
 
 def create_noise(batch_size, latent_space, type="gaussian"):
+    """
+    Create noise tensor for input to the generator of the GAN.
+
+    Args:
+        batch_size (int): Number of samples in the batch.
+        latent_space (int): Dimension of the latent space.
+        type (str, optional): Type of noise distribution. Defaults to "gaussian".
+
+    Returns:
+        torch.Tensor: Noise tensor of shape (batch_size, latent_space).
+
+    Raises:
+        ValueError: If an invalid noise type is specified.
+    """
     if type == "gaussian":
         noise = torch.randn(batch_size, latent_space)
         pass
@@ -20,6 +34,14 @@ def create_noise(batch_size, latent_space, type="gaussian"):
 
 
 class Generator(nn.Module):
+    """
+    Generator network for GAN.
+
+    Args:
+        latent_dim (int): Dimension of the latent space.
+        img_dim (int): Dimension of the output image (assumed to be square).
+        relu_slope (float, optional): Negative slope of the LeakyReLU activation. Defaults to 0.2.
+    """
 
     def __init__(self, latent_dim, img_dim, relu_slope=0.2):
         super().__init__()
@@ -35,11 +57,27 @@ class Generator(nn.Module):
         )
 
     def forward(self, noise):
+        """
+        Forward pass of the generator.
+
+        Args:
+            noise (torch.Tensor): Input noise tensor.
+
+        Returns:
+            torch.Tensor: Generated image tensor of shape (batch_size, img_dim, img_dim).
+        """
         fake_x = self.gen(noise)
         return fake_x.reshape(-1, self.img_dim, self.img_dim)
 
 
 class Discriminator(nn.Module):
+    """
+    Discriminator network for GAN.
+
+    Args:
+        img_dim (int): Dimension of the input image (assumed to be square).
+        relu_slope (float, optional): Negative slope of the LeakyReLU activation. Defaults to 0.2.
+    """
 
     def __init__(self, img_dim, relu_slope=0.2):
         super().__init__()
@@ -54,5 +92,14 @@ class Discriminator(nn.Module):
         )
 
     def forward(self, x):
+        """
+        Forward pass of the discriminator.
+
+        Args:
+            x (torch.Tensor): Input image tensor.
+
+        Returns:
+            torch.Tensor: Probability of the input being real (1) or fake (0).
+        """
         logits = self.discriminator(x.reshape(-1, self.img_dim * self.img_dim))
         return logits

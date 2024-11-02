@@ -1,25 +1,62 @@
+# Standard library imports
 import argparse
 import yaml
+
+# Third-party library imports
+import numpy as np
 import torch
 import torch.nn as nn
-from utils.helper_path import MNIST_PATH
-from utils.helper_functions import create_directory, get_MNIST_dataset, log_generated_samples
 from torch.utils.data import DataLoader
-from src.vanilla_GAN import create_noise, Generator, Discriminator
-import numpy as np
 import wandb
+
+# Local application imports
+from src.vanilla_GAN import create_noise, Generator, Discriminator
+from utils.helper_functions import create_directory, get_MNIST_dataset, log_generated_samples
+from utils.helper_path import MNIST_PATH
 
 IMG_DIM = 28
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
-def get_optimizers(discriminator, generator, lr):
+def get_optimizers(discriminator: nn.Module, generator: nn.Module, lr: float) -> tuple[torch.optim.Adam, torch.optim.Adam]:
+    """
+    Creates optimizers for the discriminator and generator networks.
+
+    Args:
+        discriminator: The discriminator neural network
+        generator: The generator neural network
+        lr (float): Learning rate for both optimizers
+
+    Returns:
+        tuple: (discriminator_optimizer, generator_optimizer)
+    """
     d_optimizer = torch.optim.Adam(discriminator.parameters(), lr)
     g_optimizer = torch.optim.Adam(generator.parameters(), lr)
     return d_optimizer, g_optimizer
 
 
-def train_discriminator(x, discriminator, generator, d_optimizer, latent_space_dim, device=DEVICE):
+def train_discriminator(
+    x: torch.Tensor,
+    discriminator: nn.Module,
+    generator: nn.Module,
+    d_optimizer: torch.optim.Adam,
+    latent_space_dim: int,
+    device: str = DEVICE
+) -> tuple[float, torch.Tensor, torch.Tensor]:
+    """
+    Performs one training step for the discriminator.
+
+    Args:
+        x (torch.Tensor): Batch of real images
+        discriminator: The discriminator neural network
+        generator: The generator neural network
+        d_optimizer: Optimizer for the discriminator
+        latent_space_dim (int): Dimension of the latent space for noise generation
+        device (str): Device to run computations on ('cuda' or 'cpu')
+
+    Returns:
+        tuple: (discriminator_loss, probabilities_real, probabilities_fake)
+    """
     loss_fn = nn.BCELoss()
     discriminator.zero_grad()
     batch_size = x.size(0)
@@ -42,7 +79,28 @@ def train_discriminator(x, discriminator, generator, d_optimizer, latent_space_d
     return total_loss_d.cpu().item(), d_proba_real, d_proba_fake
 
 
-def train_generator(x, generator, discriminator, g_optimizer, latent_space_dim, device=DEVICE):
+def train_generator(
+    x: torch.Tensor,
+    generator: nn.Module,
+    discriminator: nn.Module,
+    g_optimizer: torch.optim.Adam,
+    latent_space_dim: int,
+    device: str = DEVICE
+) -> float:
+    """
+    Performs one training step for the generator.
+
+    Args:
+        x (torch.Tensor): Batch of real images (used only for batch size)
+        generator: The generator neural network
+        discriminator: The discriminator neural network
+        g_optimizer: Optimizer for the generator
+        latent_space_dim (int): Dimension of the latent space for noise generation
+        device (str): Device to run computations on ('cuda' or 'cpu')
+
+    Returns:
+        float: Generator loss value
+    """
     loss_fn = nn.BCELoss()
     generator.zero_grad()
     batch_size = x.size(0)
@@ -59,7 +117,17 @@ def train_generator(x, generator, discriminator, g_optimizer, latent_space_dim, 
     return g_loss.cpu().item()
 
 
-def create_samples(generator, noise):
+def create_samples(generator: nn.Module, noise: torch.Tensor) -> torch.Tensor:
+    """
+    Generates image samples using the generator.
+
+    Args:
+        generator: The generator neural network
+        noise (torch.Tensor): Input noise tensor
+
+    Returns:
+        torch.Tensor: Generated images normalized to range [0, 1]
+    """
     generated_sample = generator(noise).detach().cpu()
     # We need to reshape the data in the HWC as numpy expects it and denormalize it in the range 0, 1
     images = generated_sample.permute(1, 2, 0)
@@ -67,8 +135,21 @@ def create_samples(generator, noise):
     return (images + 1) / 2
 
 
-def main(args):
+def main(args: argparse.Namespace) -> None:
+    """
+    Main training loop for the GAN.
 
+    Args:
+        args (argparse.Namespace): Command line arguments containing:
+            - wandb_logging (bool): Whether to log to Weights & Biases
+            - batch_size (int): Batch size for training
+            - latent_space_dim (int): Dimension of the latent space
+            - lr (float): Learning rate
+            - epochs (int): Number of training epochs
+            - visualized_img (int): Number of images to visualize
+            - verbose (bool): Whether to print progress
+            - sweep (bool): Whether this is part of a hyperparameter sweep
+    """
     if args.wandb_logging:
         wandb.init(
             project='GAN_plaground',
@@ -161,7 +242,11 @@ def main(args):
         wandb.finish()
 
 
-def sweep_main():
+def sweep_main() -> None:
+    """
+    Entry point for hyperparameter sweeping using Weights & Biases.
+    Initializes a wandb run and calls main() with sweep configuration.
+    """
     wandb.init()
     args = argparse.Namespace(
         epochs=2,
@@ -196,6 +281,7 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
 
+    # Seed setting for reproducibility
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 

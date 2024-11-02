@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 def create_noise(batch_size, latent_space, type="gaussian"):
     if type == "gaussian":
         noise = torch.randn(batch_size, latent_space)
@@ -16,6 +17,7 @@ def create_noise(batch_size, latent_space, type="gaussian"):
             "Options: gaussian, uniform!")
 
     return noise
+
 
 class Generator(nn.Module):
 
